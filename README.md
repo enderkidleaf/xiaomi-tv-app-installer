@@ -4,7 +4,7 @@
 
 ## 下载
 
-在 [GitHub Releases](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases) 下载 `电视安装助手-macOS.zip`，解压后双击应用。无需另外安装 ADB。
+在 [GitHub Releases](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases) 下载 `xiaomi-tv-app-installer-macOS.zip`，解压后双击应用。无需另外安装 ADB。
 
 ## 使用
 
