@@ -1,0 +1,6 @@
+dist/
+.build/
+Resources/adb
+Resources/ADB-NOTICE.txt
+Resources/AppIcon.icns
+.DS_Store
