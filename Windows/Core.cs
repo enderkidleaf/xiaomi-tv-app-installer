@@ -13,10 +13,10 @@ public record Endpoint(string Host, int Port)
     {
         var parts = input.Trim().Split(':');
         if (parts.Length is < 1 or > 2 || !Regex.IsMatch(parts[0], @"^[0-9]{1,3}(\.[0-9]{1,3}){3}$"))
-            throw new ArgumentException("请输入电视 IPv4 地址，例如 192.168.1.100:5555。");
+            throw new ArgumentException("请输入设备 IPv4 地址，例如 192.168.1.100:5555。");
         var octets = parts[0].Split('.').Select(int.Parse).ToArray();
         if (octets.Any(x => x > 255) || octets[0] is 0 or 127 or >= 224)
-            throw new ArgumentException("请输入有效的电视局域网 IP。");
+            throw new ArgumentException("请输入有效的设备局域网 IP。");
         int port = 5555;
         if (parts.Length == 2 && (!int.TryParse(parts[1], out port) || port is < 1 or > 65535))
             throw new ArgumentException("端口应在 1 到 65535 之间。");
@@ -28,7 +28,7 @@ public record Device(string Serial, string State, string Model, string Android =
 {
     public bool Ready => State == "device";
     public string Name => string.IsNullOrEmpty(Model) ? "Android 设备" : Model.Replace('_', ' ');
-    public string Status => State switch { "device" => "已连接", "unauthorized" => "等待电视授权", "offline" => "设备离线", _ => State };
+    public string Status => State switch { "device" => "已连接", "unauthorized" => "等待设备授权", "offline" => "设备离线", _ => State };
     public override string ToString() => $"{Name} · {Serial} · {Status}" + (Android.Length > 0 ? $" · Android {Android}" : "");
 }
 
@@ -107,7 +107,7 @@ public class AdbClient(string executable)
     }
     public static string[] InstallArguments(string serial, string[] paths, bool split)
     {
-        if (string.IsNullOrEmpty(serial) || paths.Length == 0) throw new ArgumentException("请先选择电视和 APK。");
+        if (string.IsNullOrEmpty(serial) || paths.Length == 0) throw new ArgumentException("请先选择设备和 APK。");
         foreach (var path in paths) ValidateApk(path);
         return ["-s", serial, split ? "install-multiple" : "install", "-r", .. paths];
     }
@@ -132,12 +132,12 @@ public static class Errors
     public static string Friendly(string output)
     {
         string[] codes = ["UPDATE_INCOMPATIBLE", "VERSION_DOWNGRADE", "NO_MATCHING_ABIS", "OLDER_SDK", "INSUFFICIENT_STORAGE", "USER_RESTRICTED", "MISSING_SPLIT"];
-        string[] messages = ["签名与已安装版本不同，请使用同一来源的 APK。", "版本低于电视上的已安装版本，请选择更新的 APK。", "处理器架构不兼容，请选择适合电视的 ARM 版本。", "APK 要求更高的 Android 版本。", "电视存储空间不足，请先清理空间。", "电视限制安装，请检查未知来源设置并确认电视提示。", "缺少拆分文件，请选齐同一应用的 base 和 split APK，并勾选拆分模式。"];
+        string[] messages = ["签名与已安装版本不同，请使用同一来源的 APK。", "版本低于设备上的已安装版本，请选择更新的 APK。", "处理器架构不兼容，请选择与设备处理器架构匹配的版本。", "APK 要求更高的 Android 版本。", "设备存储空间不足，请先清理空间。", "设备限制安装，请检查未知来源设置并确认设备提示。", "缺少拆分文件，请选齐同一应用的 base 和 split APK，并勾选拆分模式。"];
         for (int i = 0; i < codes.Length; i++) if (output.Contains("INSTALL_FAILED_" + codes[i])) return messages[i];
-        if (output.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) || output.Contains("authenticate")) return "请在电视的调试授权弹窗选择「允许」，再刷新状态。";
-        if (output.Contains("refused", StringComparison.OrdinalIgnoreCase)) return "电视未开放此端口，请检查 ADB 开关或无线调试的连接端口。";
-        if (output.Contains("timed out", StringComparison.OrdinalIgnoreCase) || output.Contains("10060") || output.Contains("10065")) return "连接超时，请确认电视已开机、IP 正确、同一局域网没有客户端隔离。";
-        if (output.Contains("offline") || output.Contains("not found")) return "设备离线，请重新连接电视。";
+        if (output.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) || output.Contains("authenticate")) return "请在设备的调试授权弹窗选择「允许」，再刷新状态。";
+        if (output.Contains("refused", StringComparison.OrdinalIgnoreCase)) return "设备未开放此端口，请检查 ADB 开关或无线调试的连接端口。";
+        if (output.Contains("timed out", StringComparison.OrdinalIgnoreCase) || output.Contains("10060") || output.Contains("10065")) return "连接超时，请确认设备已开机、IP 正确、同一局域网没有客户端隔离。";
+        if (output.Contains("offline") || output.Contains("not found")) return "设备离线，请重新连接设备。";
         return output.Trim();
     }
 }

@@ -8,7 +8,7 @@ public class MainForm : Form
     readonly AdbClient adb = new(Path.Combine(AppContext.BaseDirectory, "Resources", "adb", "adb.exe"));
     readonly ComboBox networks = new() { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
     readonly ComboBox devices = new() { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Fill };
-    readonly TextBox address = new() { PlaceholderText = "电视 IP，例如 192.168.1.100 或 IP:端口", Dock = DockStyle.Fill };
+    readonly TextBox address = new() { PlaceholderText = "设备 IP，例如 192.168.1.100 或 IP:端口", Dock = DockStyle.Fill };
     readonly Label status = new() { AutoSize = true, MaximumSize = new Size(950, 0), ForeColor = Ink };
     readonly ProgressBar progress = new() { Dock = DockStyle.Fill, Height = 5, Maximum = 1000 };
     readonly DataGridView queue = new() { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, BackgroundColor = Color.White, BorderStyle = BorderStyle.None, AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells };
@@ -21,7 +21,7 @@ public class MainForm : Form
 
     public MainForm(string[] initial)
     {
-        Text = "电视安装助手 · Windows"; Size = new Size(1060, 880); MinimumSize = new Size(900, 760);
+        Text = "局域网安卓设备安装助手 · Windows"; Size = new Size(1060, 880); MinimumSize = new Size(900, 760);
         StartPosition = FormStartPosition.CenterScreen; BackColor = Background; ForeColor = Ink;
         Font = new Font("Microsoft YaHei UI", 10); AutoScaleMode = AutoScaleMode.Dpi;
         try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
@@ -33,12 +33,12 @@ public class MainForm : Form
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 42));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
         Controls.Add(root);
-        root.Controls.Add(new Label { Text = "把喜欢的应用，装上电视。\n发现电视，选择 APK，一键安装。", AutoSize = true, Font = new Font(Font.FontFamily, 18, FontStyle.Bold), Padding = new Padding(0, 0, 0, 12) }, 0, 0);
+        root.Controls.Add(new Label { Text = "把喜欢的应用，装上设备。\n发现设备，选择 APK，一键安装。", AutoSize = true, Font = new Font(Font.FontFamily, 18, FontStyle.Bold), Padding = new Padding(0, 0, 0, 12) }, 0, 0);
 
         var connection = Card(5);
         root.Controls.Add(connection, 0, 1);
-        connection.Controls.Add(new Label { Text = "01  选择电视   ·   电视开启 ADB 调试，与电脑接入同一局域网", AutoSize = true, Font = new Font(Font, FontStyle.Bold) }, 0, 0);
-        var networkLine = Row(networks, Button("发现电视", Discover, true), Button("刷新状态", RefreshDevices));
+        connection.Controls.Add(new Label { Text = "01  选择设备   ·   设备开启网络 ADB，与电脑接入同一局域网", AutoSize = true, Font = new Font(Font, FontStyle.Bold) }, 0, 0);
+        var networkLine = Row(networks, Button("发现设备", Discover, true), Button("刷新状态", RefreshDevices));
         connection.Controls.Add(networkLine, 0, 1);
         connection.Controls.Add(devices, 0, 2);
         connection.Controls.Add(Row(address, Button("连接", Connect), Button("无线配对", Pair), Button("断开", Disconnect)), 0, 3);
@@ -48,7 +48,7 @@ public class MainForm : Form
         var apk = Card(4); root.Controls.Add(apk, 0, 2);
         apk.RowStyles.Clear(); apk.RowStyles.Add(new RowStyle(SizeType.Absolute, 34)); apk.RowStyles.Add(new RowStyle(SizeType.Absolute, 44)); apk.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); apk.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
         apk.Controls.Add(new Label { Text = "02  添加应用   ·   拖入 APK 或选择文件", AutoSize = true, Font = new Font(Font, FontStyle.Bold) }, 0, 0);
-        apk.Controls.Add(Row(new Label { Text = "APK 从电脑直接发送到所选电视，不上传云端。", AutoSize = true }, Button("选择 APK…", Choose), Button("移除所选", Remove), Button("清空", Clear)), 0, 1);
+        apk.Controls.Add(Row(new Label { Text = "APK 从电脑直接发送到所选设备，不上传云端。", AutoSize = true }, Button("选择 APK…", Choose), Button("移除所选", Remove), Button("清空", Clear)), 0, 1);
         queue.Columns.Add("file", "APK 文件"); queue.Columns.Add("size", "大小"); queue.Columns.Add("state", "状态 / 结果");
         queue.Columns[0]!.FillWeight = 40; queue.Columns[1]!.FillWeight = 12; queue.Columns[2]!.FillWeight = 48;
         queue.DefaultCellStyle.WrapMode = DataGridViewTriState.True; queue.RowTemplate.Height = 32;
@@ -66,10 +66,10 @@ public class MainForm : Form
         var logCard = Card(2); logCard.RowStyles.Clear(); logCard.RowStyles.Add(new RowStyle(SizeType.Absolute, 32)); logCard.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         logCard.Controls.Add(Row(new Label { Text = "操作日志", AutoSize = true, Font = new Font(Font, FontStyle.Bold) }, Button("导出日志", Export, tracked: false), Button("使用帮助", Help, tracked: false)), 0, 0);
         logCard.Controls.Add(logs, 0, 1); root.Controls.Add(logCard, 0, 4);
-        root.Controls.Add(new Label { Text = "v1.1.0  ·  官方 ADB  ·  Windows 10 / 11", ForeColor = Color.DimGray, AutoSize = true }, 0, 5);
+        root.Controls.Add(new Label { Text = "v1.1.1  ·  官方 ADB  ·  Windows 10 / 11", ForeColor = Color.DimGray, AutoSize = true }, 0, 5);
         Shown += async (_, _) => { AddFiles(initial); LoadNetworks(); await Guard(RefreshDevices); };
         devices.SelectedIndexChanged += (_, _) => UpdateInstall();
-        FormClosing += (_, e) => { if (installing && MessageBox.Show("安装仍在进行。退出会停止后续队列，当前安装结果需在电视上确认。是否退出？", Text, MessageBoxButtons.YesNo) != DialogResult.Yes) e.Cancel = true; };
+        FormClosing += (_, e) => { if (installing && MessageBox.Show("安装仍在进行。退出会停止后续队列，当前安装结果需在设备上确认。是否退出？", Text, MessageBoxButtons.YesNo) != DialogResult.Yes) e.Cancel = true; };
     }
 
     TableLayoutPanel Card(int rows) => new() { Dock = DockStyle.Fill, Padding = new Padding(16), Margin = new Padding(0, 0, 0, 14), BackColor = Color.White, ColumnCount = 1, RowCount = rows };
@@ -105,19 +105,19 @@ public class MainForm : Form
         devices.Items.Clear(); devices.Items.AddRange(found.Cast<object>().ToArray());
         int match = found.FindIndex(d => d.Serial == old);
         if (found.Count > 0) devices.SelectedIndex = match >= 0 ? match : Math.Max(0, found.FindIndex(d => d.Ready));
-        Notice(found.Count == 0 ? "暂无已连接的电视。点击发现电视或输入 IP 连接。" : $"已列出 {found.Count} 台设备，请确认型号和地址。" );
+        Notice(found.Count == 0 ? "暂无已连接的设备。点击发现设备或输入 IP 连接。" : $"已列出 {found.Count} 台设备，请确认型号和地址。" );
     }
     async Task Discover()
     {
         if (networks.SelectedItem is not Lan lan) { LoadNetworks(); throw new IOException("请选择可用的局域网。"); }
-        Notice("正在发现电视…");
+        Notice("正在发现设备…");
         var uiProgress = new Progress<(int, int)>(p => progress.Value = p.Item2 == 0 ? 1000 : p.Item1 * 1000 / p.Item2);
         var found = await AdbClient.Scan(lan, (done, total) => ((IProgress<(int,int)>)uiProgress).Report((done,total)));
         var mdns = await adb.Run(["mdns", "services"]);
         found.AddRange(AdbClient.ParseServices(mdns.Output).Select(e => e.Address));
         foreach (var target in found.Distinct()) Log((await adb.Run(["connect", target], 8)).Output);
         await RefreshDevices();
-        if (devices.Items.Count == 0) Notice("未发现网络 ADB。请手动输入 IP，或查看电视无线调试页面的端口。", true);
+        if (devices.Items.Count == 0) Notice("未发现网络 ADB。请手动输入 IP，或查看设备无线调试页面的端口。", true);
     }
     async Task Connect()
     {
@@ -125,7 +125,7 @@ public class MainForm : Form
         Log((await adb.Run(["connect", target.Address], 12)).Output);
         await RefreshDevices();
         var matches = devices.Items.Cast<Device>().ToArray(); int index = Array.FindIndex(matches, d => d.Serial == target.Address);
-        if (index >= 0) { devices.SelectedIndex = index; Notice(matches[index].Ready ? $"已连接 {matches[index].Name}。" : "请在电视上允许调试后刷新状态。", !matches[index].Ready); }
+        if (index >= 0) { devices.SelectedIndex = index; Notice(matches[index].Ready ? $"已连接 {matches[index].Name}。" : "请在设备上允许调试后刷新状态。", !matches[index].Ready); }
         else Notice("未连接成功，请查看日志中的具体原因。", true);
     }
     async Task Pair()
@@ -181,8 +181,8 @@ public class MainForm : Form
         if (stopRemaining) foreach (DataGridViewRow row in queue.Rows) if ((string?)row.Cells[2].Value == "待安装") row.Cells[2].Value = "已跳过";
         Notice($"{(stopRemaining ? "队列已停止" : "安装完成")}：成功 {success} 项，失败 {failure} 项。", failure > 0);
     }
-    Task Export() { using var dialog = new SaveFileDialog { Filter = "文本日志|*.txt", FileName = "电视安装日志.txt" }; if (dialog.ShowDialog(this) == DialogResult.OK) File.WriteAllText(dialog.FileName, logs.Text, Encoding.UTF8); return Task.CompletedTask; }
-    Task Help() { MessageBox.Show("1. 电视设置中开启 ADB 调试，与电脑接入同一局域网。\n2. 发现电视或输入 IP:端口，电视弹出授权时选择允许。\n3. 选择目标电视，拖入 APK 后开始安装。\n\n拆分 APK 必须选齐同一应用的 base 与 split 文件。XAPK/APKM/AAB 不能直接安装。\n无线配对使用电视显示的配对端口与连接端口，两者通常不同。\n\n本工具不能远程开启被固件关闭的网络 ADB 服务。断开连接不会关闭电视调试服务。", "使用帮助"); return Task.CompletedTask; }
+    Task Export() { using var dialog = new SaveFileDialog { Filter = "文本日志|*.txt", FileName = "安卓设备安装日志.txt" }; if (dialog.ShowDialog(this) == DialogResult.OK) File.WriteAllText(dialog.FileName, logs.Text, Encoding.UTF8); return Task.CompletedTask; }
+    Task Help() { MessageBox.Show("1. 设备设置中开启网络 ADB 或无线调试，与电脑接入同一局域网。\n2. 发现设备或输入 IP:端口，设备弹出授权时选择允许。\n3. 选择目标设备，拖入 APK 后开始安装。\n\n拆分 APK 必须选齐同一应用的 base 与 split 文件。XAPK/APKM/AAB 不能直接安装。\n无线配对使用设备显示的配对端口与连接端口，两者通常不同。\n\n本工具不能远程开启被固件关闭的网络 ADB 服务。断开连接不会关闭设备调试服务。", "使用帮助"); return Task.CompletedTask; }
 }
 
 class PairForm : Form
@@ -193,7 +193,7 @@ class PairForm : Form
     {
         Text = "无线调试配对"; Size = new Size(520, 330); FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false; MinimizeBox = false; StartPosition = FormStartPosition.CenterParent;
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), RowCount = 7, ColumnCount = 1 };
-        layout.Controls.Add(new Label { Text = "打开电视「无线调试 → 使用配对码配对」，保持窗口打开。", AutoSize = true });
+        layout.Controls.Add(new Label { Text = "打开设备「无线调试 → 使用配对码配对」，保持窗口打开。", AutoSize = true });
         foreach (var (title, field) in new[] { ("配对 IP:端口", pairing), ("6 位配对码", code), ("连接 IP:端口（无线调试主页面）", connection) })
         {
             var row = new TableLayoutPanel { Dock = DockStyle.Top, Height = 48, ColumnCount = 2 }; row.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 220)); row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

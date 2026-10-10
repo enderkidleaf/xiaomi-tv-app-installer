@@ -6,8 +6,8 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>TVAppInstaller</AssemblyName>
-    <Version>1.1.0</Version>
+    <AssemblyName>AndroidAppInstaller</AssemblyName>
+    <Version>1.1.1</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
