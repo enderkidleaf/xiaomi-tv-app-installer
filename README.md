@@ -1,10 +1,22 @@
 # 电视安装助手
 
-在 macOS 上通过局域网 ADB 给小米、Redmi 和其他支持网络 ADB 的 Android 电视安装 APK。
+通过局域网 ADB 给小米、Redmi 和其他支持网络 ADB 的 Android 电视安装 APK。提供 macOS、Windows 和安卓客户端。
+
+| 客户端 | 系统要求 | 自动发现 | 无线配对 | 批量 / 拆分 APK |
+| --- | --- | --- | --- | --- |
+| macOS | macOS 13+，Apple Silicon / Intel | TCP 5555 + mDNS | 支持 | 支持 |
+| Windows | Windows 10 / 11 x64 | TCP 5555 + mDNS | 支持 | 支持 |
+| Android | Android 8+，不限 CPU 架构 | TCP 5555 | 普通 TCP ADB 授权；不支持配对式 TLS | 支持 |
+
+安卓端从手机直接连接电视，不需要 root，不需要电脑。Windows 版内置官方 ADB 和 .NET 运行时，无需额外安装开发工具。
 
 ## 下载
 
-在 [GitHub Releases](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases) 下载 `xiaomi-tv-app-installer-macOS.zip`，解压后双击应用。无需另外安装 ADB。
+在 [GitHub Releases](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases) 选择对应平台的安装包。macOS 包为 `xiaomi-tv-app-installer-macOS.zip`；Windows 包为 `xiaomi-tv-app-installer-Windows-x64.zip`；安卓为 `xiaomi-tv-app-installer-Android.apk`。
+
+新客户端的本地构建产物为 `dist/xiaomi-tv-app-installer-Windows-x64.zip` 和 `dist/xiaomi-tv-app-installer-Android.apk`。Windows 解压整个目录后运行 `TVAppInstaller.exe`，保留旁边的 `Resources` 文件夹；安卓 APK 安装到手机，选择手机上下载好的 APK 发送到电视。
+
+Windows 与安卓详细说明分别见 [Windows/README.md](Windows/README.md) 和 [Android/README.md](Android/README.md)。
 
 ## 使用
 
@@ -34,7 +46,7 @@
 
 所有 APK 通过本机 ADB 直接发往所选电视，不上传云端，无遥测。日志保存在当前内存会话，只有点击导出才会写出文件。配对码不保存；官方 ADB 会在用户目录管理调试信任密钥。使用已运行的本机 ADB 服务，不会全局断开其他设备或停止 ADB 服务。
 
-应用为本地构建并使用 ad-hoc 签名，未经过 Apple 公证。分发到其他 Mac 时，系统可能要求通过系统设置 → 隐私与安全性 → 仍要打开确认来源。本机可直接运行。通用指 macOS 上支持不同局域网和电视型号，不包含 Windows/Linux 客户端。
+macOS 应用为本地构建并使用 ad-hoc 签名，未经过 Apple 公证。分发到其他 Mac 时，系统可能要求通过系统设置 → 隐私与安全性 → 仍要打开确认来源。Windows EXE 未使用商业代码签名。安卓 APK 使用专用的本地 release 密钥签名；该密钥不包含在应用或源码提交中。
 
 ## 构建与验证
 

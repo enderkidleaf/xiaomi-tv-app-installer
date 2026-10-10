@@ -4,3 +4,16 @@ Resources/adb
 Resources/ADB-NOTICE.txt
 Resources/AppIcon.icns
 .DS_Store
+Windows/bin/
+Windows/obj/
+Windows/Resources/adb/
+CrossPlatformTests/bin/
+CrossPlatformTests/obj/
+Android/.gradle/
+Android/build/
+Android/app/build/
+Android/local.properties
+*.jks
+*.keystore
+*.p12
+.signing/
