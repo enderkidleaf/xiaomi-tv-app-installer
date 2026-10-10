@@ -29,7 +29,7 @@ import Foundation
         """)
         check(devices.count == 4, "exclude USB, emulator and daemon messages")
         check(devices[0].ready && devices[0].title == "MiTV MFFU0", "connected device parsing")
-        check(devices[1].status == "等待电视授权", "unauthorized state")
+        check(devices[1].status == "等待设备授权", "unauthorized state")
         check(!devices[2].ready, "offline cannot install")
         let services = "tv _adb-tls-connect._tcp. 192.168.1.73:39000\ntv _adb-tls-pairing._tcp. 192.168.1.73:37000\ntv _adb-tls-connect._tcp. 192.168.1.73:39000"
         check(ADBParser.services(services).count == 1, "deduplicate connection broadcasts")
