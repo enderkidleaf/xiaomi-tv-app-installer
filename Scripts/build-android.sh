@@ -10,9 +10,17 @@ TASK_TOOLS="${TV_INSTALLER_ANDROID_TOOLS:-$TASK_ROOT/.build/toolchains/android-f
 TASK_BUILD="$TASK_ROOT/.build/android"
 mkdir -p "$TASK_BUILD/generated" "$TASK_BUILD/classes" "$TASK_BUILD/dex" "$TASK_ROOT/dist" "$TASK_ROOT/.signing"
 export JAVA_HOME="$TASK_JAVA"
+python3 - "$TASK_ROOT" <<'PY'
+import pathlib,sys,xml.etree.ElementTree as ET
+root=pathlib.Path(sys.argv[1])
+ET.register_namespace('android','http://schemas.android.com/apk/res/android')
+manifest=ET.parse(root/'Android/app/src/main/AndroidManifest.xml')
+manifest.getroot().set('package','com.enderkidleaf.tvinstaller')
+manifest.write(root/'.build/android/AndroidManifest.xml',encoding='utf-8',xml_declaration=True)
+PY
 "$TASK_TOOLS/aapt2" compile --dir "$TASK_ROOT/Android/app/src/main/res" -o "$TASK_BUILD/resources.zip"
 "$TASK_TOOLS/aapt2" link -o "$TASK_BUILD/unsigned.apk" -I "$TASK_PLATFORM" \
-    --manifest "$TASK_ROOT/Android/app/src/main/AndroidManifest.xml" --java "$TASK_BUILD/generated" \
+    --manifest "$TASK_BUILD/AndroidManifest.xml" --java "$TASK_BUILD/generated" \
     --min-sdk-version 26 --target-sdk-version 36 --version-code 110 --version-name 1.1.0 \
     "$TASK_BUILD/resources.zip"
 python3 - "$TASK_ROOT" <<'PY'
