@@ -23,7 +23,7 @@ struct Endpoint: Equatable {
             throw ToolError.message("端口应在 1 到 65535 之间。")
         }
         guard !host.hasPrefix("127."), host != "0.0.0.0", !host.hasPrefix("255.") else {
-            throw ToolError.message("请输入电视的局域网 IP 地址。")
+            throw ToolError.message("请输入设备的局域网 IP 地址。")
         }
         self.host = host
         self.port = port
@@ -42,7 +42,7 @@ struct Device: Identifiable, Equatable {
     var status: String {
         switch state {
         case "device": return "已连接"
-        case "unauthorized": return "等待电视授权"
+        case "unauthorized": return "等待设备授权"
         case "offline": return "设备离线"
         default: return state
         }
@@ -73,7 +73,7 @@ enum ADBParser {
     }
 
     static func installArguments(serial: String, files: [URL], split: Bool) throws -> [String] {
-        guard !serial.isEmpty, !files.isEmpty else { throw ToolError.message("请先选择电视和 APK 文件。") }
+        guard !serial.isEmpty, !files.isEmpty else { throw ToolError.message("请先选择设备和 APK 文件。") }
         try files.forEach(validateAPK)
         return ["-s", serial, split ? "install-multiple" : "install", "-r"] + files.map(\.path)
     }
@@ -92,16 +92,16 @@ enum ADBParser {
 
     static func friendlyError(_ raw: String) -> String {
         if raw.contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") { return "签名与已安装版本不同。请使用同一来源的 APK；卸载旧版本会删除应用数据。" }
-        if raw.contains("INSTALL_FAILED_VERSION_DOWNGRADE") { return "APK 版本低于电视上的已安装版本，请选择更新版本。" }
-        if raw.contains("INSTALL_FAILED_NO_MATCHING_ABIS") { return "APK 的处理器架构不兼容，请选择适合该电视的 ARM 版本。" }
+        if raw.contains("INSTALL_FAILED_VERSION_DOWNGRADE") { return "APK 版本低于设备上的已安装版本，请选择更新版本。" }
+        if raw.contains("INSTALL_FAILED_NO_MATCHING_ABIS") { return "APK 的处理器架构不兼容，请选择与设备处理器架构匹配的版本。" }
         if raw.contains("INSTALL_FAILED_OLDER_SDK") { return "APK 要求更高的 Android 版本，请选择兼容版本。" }
-        if raw.contains("INSTALL_FAILED_INSUFFICIENT_STORAGE") { return "电视存储空间不足，请先清理空间。" }
-        if raw.contains("INSTALL_FAILED_USER_RESTRICTED") { return "电视限制了安装。请检查未知来源安装设置，并确认电视上的提示。" }
+        if raw.contains("INSTALL_FAILED_INSUFFICIENT_STORAGE") { return "设备存储空间不足，请先清理空间。" }
+        if raw.contains("INSTALL_FAILED_USER_RESTRICTED") { return "设备限制了安装。请检查未知来源安装设置，并确认设备上的提示。" }
         if raw.contains("INSTALL_FAILED_MISSING_SPLIT") { return "这是拆分 APK。请选齐同一应用的 base 和 split 文件，并开启拆分 APK 模式。" }
-        if raw.localizedCaseInsensitiveContains("unauthorized") || raw.contains("authenticate") { return "请在电视弹出的调试授权窗口选择「允许」，然后点击刷新状态。" }
-        if raw.localizedCaseInsensitiveContains("refused") { return "电视未开放此 ADB 端口。请检查 ADB 调试开关，或使用无线调试页面显示的连接端口。" }
-        if raw.localizedCaseInsensitiveContains("timed out") || raw.contains("Host is down") || raw.contains("No route") { return "无法访问电视。请确认电视已开机、IP 正确，电脑和电视在同一局域网，且没有访客网络或客户端隔离。" }
-        if raw.contains("offline") || raw.contains("not found") || raw.contains("no devices") { return "设备离线，请重新连接电视。" }
+        if raw.localizedCaseInsensitiveContains("unauthorized") || raw.contains("authenticate") { return "请在设备弹出的调试授权窗口选择「允许」，然后点击刷新状态。" }
+        if raw.localizedCaseInsensitiveContains("refused") { return "设备未开放此 ADB 端口。请检查 ADB 调试开关，或使用无线调试页面显示的连接端口。" }
+        if raw.localizedCaseInsensitiveContains("timed out") || raw.contains("Host is down") || raw.contains("No route") { return "无法访问设备。请确认设备已开机、IP 正确，电脑和设备在同一局域网，且没有访客网络或客户端隔离。" }
+        if raw.contains("offline") || raw.contains("not found") || raw.contains("no devices") { return "设备离线，请重新连接设备。" }
         return raw.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

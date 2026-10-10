@@ -35,7 +35,7 @@ final class InstallerModel: ObservableObject {
     @Published var cancelRemaining = false
     @Published var phase = "准备就绪"
     @Published var progress: Double = 0
-    @Published var banner = "开启电视上的 ADB 调试后，点击「发现电视」或输入 IP 地址。"
+    @Published var banner = "开启目标设备的网络 ADB 或无线调试后，点击「发现设备」或输入 IP 地址。"
     @Published var bannerError = false
     @Published var logs: [LogEntry] = []
     @Published var showPairing = false
@@ -86,8 +86,8 @@ final class InstallerModel: ObservableObject {
             case .success(let value):
                 updateDevices(value)
                 if let ready = selected, ready.ready { notice("已连接 \(ready.title)，可以选择 APK 安装。") }
-                else if value.contains(where: { $0.state == "unauthorized" }) { notice("请在电视上允许此电脑进行 ADB 调试，然后刷新状态。", error: true) }
-                else { notice("暂无已连接的电视。点击「发现电视」，或输入电视 IP 连接。") }
+                else if value.contains(where: { $0.state == "unauthorized" }) { notice("请在设备上允许此电脑进行 ADB 调试，然后刷新状态。", error: true) }
+                else { notice("暂无已连接的设备。点击「发现设备」，或输入设备 IP 连接。") }
             case .failure(let error): notice(error.localizedDescription, error: true)
             }
             busy = false; phase = "准备就绪"
@@ -124,7 +124,7 @@ final class InstallerModel: ObservableObject {
     func discover() {
         guard !busy else { return }
         guard let network else { notice("未发现可用的局域网，请检查 Mac 的 Wi-Fi 或网线连接。", error: true); return }
-        busy = true; phase = "正在发现电视"; progress = 0
+        busy = true; phase = "正在发现设备"; progress = 0
         log("扫描 \(network.description) 的 TCP 5555，并检查无线 ADB 广播。")
         let client = self.client
         Task {
@@ -142,8 +142,8 @@ final class InstallerModel: ObservableObject {
             case .success(let (value, count)):
                 updateDevices(value)
                 if value.contains(where: \.ready) { notice("发现 \(value.filter(\.ready).count) 台已连接设备。请确认型号并选择安装目标。") }
-                else if !value.isEmpty { notice("已发现 ADB 设备，请在电视上允许调试，再刷新状态。", error: true) }
-                else { notice(count == 0 ? "未发现网络 ADB。可输入电视 IP 重试，或在电视的无线调试页面查看端口并配对。" : "发现开放的端口，但尚未连接成功。请检查电视授权和无线调试设置。", error: true) }
+                else if !value.isEmpty { notice("已发现 ADB 设备，请在设备上允许调试，再刷新状态。", error: true) }
+                else { notice(count == 0 ? "未发现网络 ADB。可输入设备 IP 重试，或在设备的无线调试页面查看端口并配对。" : "发现开放的端口，但尚未连接成功。请检查设备授权和无线调试设置。", error: true) }
             case .failure(let error): notice(error.localizedDescription, error: true)
             }
             busy = false; progress = 1; phase = "发现完成"
@@ -156,10 +156,10 @@ final class InstallerModel: ObservableObject {
         let connection: Endpoint
         let code = pairCode.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
-            guard pairAddress.contains(":"), connectionAddress.contains(":") else { throw ToolError.message("请分别填写电视显示的配对地址和连接地址（含端口）。") }
+            guard pairAddress.contains(":"), connectionAddress.contains(":") else { throw ToolError.message("请分别填写设备显示的配对地址和连接地址（含端口）。") }
             pairing = try Endpoint(pairAddress)
             connection = try Endpoint(connectionAddress)
-            guard code.count == 6 && code.allSatisfy({ $0.isASCII && $0.isNumber }) else { throw ToolError.message("请输入电视上显示的 6 位配对码。") }
+            guard code.count == 6 && code.allSatisfy({ $0.isASCII && $0.isNumber }) else { throw ToolError.message("请输入设备上显示的 6 位配对码。") }
         } catch { notice(error.localizedDescription, error: true); return }
         busy = true; phase = "正在配对"; progress = 0
         let client = self.client
@@ -171,7 +171,7 @@ final class InstallerModel: ObservableObject {
                 // Pairing codes are never included in logs or persisted.
                 if value.success && value.output.contains("Successfully paired") {
                     showPairing = false; address = connection.address
-                    notice("配对成功，正在连接电视。")
+                    notice("配对成功，正在连接设备。")
                     connect(connection.address)
                 } else { notice("配对失败。请确认配对窗口仍打开、地址和端口正确，配对码未过期。", error: true); phase = "配对未完成" }
             case .failure(let error): notice(error.localizedDescription, error: true); phase = "配对未完成"
@@ -190,7 +190,7 @@ final class InstallerModel: ObservableObject {
                 return try client.enrichedDevices()
             } }.value
             switch result {
-            case .success(let value): updateDevices(value); notice("已断开 \(target.title)。如需关闭调试服务，请在电视设置中关闭 ADB。")
+            case .success(let value): updateDevices(value); notice("已断开 \(target.title)。如需关闭调试服务，请在设备设置中关闭 ADB。")
             case .failure(let error): notice(error.localizedDescription, error: true)
             }
             busy = false; phase = "准备就绪"
@@ -219,7 +219,7 @@ final class InstallerModel: ObservableObject {
             } catch { rejected.append(error.localizedDescription) }
         }
         if !rejected.isEmpty { notice(rejected.joined(separator: "\n"), error: true) }
-        else if !urls.isEmpty { notice("已选择 \(files.count) 个 APK。安装前请确认目标电视。") }
+        else if !urls.isEmpty { notice("已选择 \(files.count) 个 APK。安装前请确认目标设备。") }
     }
 
     func install() {
@@ -267,13 +267,13 @@ final class InstallerModel: ObservableObject {
             }
             installing = false; busy = false
             phase = cancelRemaining ? "队列已停止" : "安装完成"
-            notice("\(phase)：成功 \(successes) 项，失败 \(failures) 项。\(successes > 0 ? "可在电视的应用列表中打开。" : "")", error: failures > 0)
+            notice("\(phase)：成功 \(successes) 项，失败 \(failures) 项。\(successes > 0 ? "可在设备的应用列表中打开。" : "")", error: failures > 0)
         }
     }
 
     func exportLogs() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "电视安装日志.txt"
+        panel.nameFieldStringValue = "安卓设备安装日志.txt"
         panel.allowedContentTypes = [.plainText]
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -331,7 +331,7 @@ struct InstallerView: View {
                     apkCard
                     statusCard
                     HStack {
-                        Label("官方 ADB · 文件经局域网直接传到电视", systemImage: "network")
+                        Label("官方 ADB · 文件经局域网直接传到设备", systemImage: "network")
                         Spacer()
                         Button("使用帮助") { showHelp = true }.buttonStyle(.plain).foregroundStyle(accent)
                         Button("查看日志") { model.showLogs = true }.buttonStyle(.plain).foregroundStyle(accent)
@@ -351,11 +351,11 @@ struct InstallerView: View {
     var sidebar: some View {
         VStack(alignment: .leading, spacing: 28) {
             HStack(spacing: 10) {
-                Image(systemName: "tv.fill").font(.system(size: 20)).foregroundStyle(.white)
+                Image(systemName: "apps.iphone").font(.system(size: 20)).foregroundStyle(.white)
                     .frame(width: 42, height: 42).background(accent).clipShape(RoundedRectangle(cornerRadius: 12))
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("电视安装助手").font(.system(size: 15, weight: .bold))
-                    Text("TV APP INSTALLER").font(.system(size: 8, weight: .medium, design: .monospaced)).tracking(1.4).foregroundStyle(muted)
+                    Text("安卓设备安装助手").font(.system(size: 13, weight: .bold))
+                    Text("ANDROID LAN INSTALLER").font(.system(size: 8, weight: .medium, design: .monospaced)).tracking(0.1).foregroundStyle(muted)
                 }
             }
             VStack(alignment: .leading, spacing: 14) {
@@ -367,8 +367,8 @@ struct InstallerView: View {
             }
             Spacer()
             VStack(alignment: .leading, spacing: 14) {
-                Text("开始前，电视上准备好").font(.system(size: 12, weight: .semibold))
-                hint("1", "开启 ADB 调试")
+                Text("开始前，设备上准备好").font(.system(size: 12, weight: .semibold))
+                hint("1", "开启网络 ADB / 无线调试")
                 hint("2", "连接同一个局域网")
                 hint("3", "允许此电脑调试")
                 Divider().padding(.vertical, 4)
@@ -378,7 +378,7 @@ struct InstallerView: View {
                 }
                 Text(model.network?.ip ?? "检查 Wi-Fi / 以太网").font(.system(size: 11, design: .monospaced)).foregroundStyle(muted)
             }
-            Text("v1.0 · macOS").font(.system(size: 10)).foregroundStyle(muted.opacity(0.75))
+            Text("v1.1.1 · macOS").font(.system(size: 10)).foregroundStyle(muted.opacity(0.75))
         }.padding(24).frame(width: 220).background(Color.white)
             .overlay(alignment: .trailing) { Rectangle().fill(ink.opacity(0.06)).frame(width: 1) }
     }
@@ -393,11 +393,11 @@ struct InstallerView: View {
     var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("把喜欢的应用，装上电视。").font(.system(size: 25, weight: .bold))
-                Text("发现电视，选择 APK，一键安装。").font(.system(size: 12)).foregroundStyle(muted)
+                Text("把喜欢的应用，装上设备。").font(.system(size: 25, weight: .bold))
+                Text("发现设备，选择 APK，一键安装。").font(.system(size: 12)).foregroundStyle(muted)
             }
             Spacer()
-            Label("小米 / Redmi / Android TV", systemImage: "wifi")
+            Label("手机 / 平板 / 电视 / 机顶盒", systemImage: "wifi")
                 .font(.system(size: 10, weight: .medium)).foregroundStyle(muted)
                 .padding(.horizontal, 12).padding(.vertical, 8).background(.white).clipShape(Capsule())
         }.padding(.bottom, 3)
@@ -407,7 +407,7 @@ struct InstallerView: View {
         Card {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    SectionTitle(number: "01", title: "选择电视", subtitle: "仅连接已开启网络 ADB 的设备")
+                    SectionTitle(number: "01", title: "选择设备", subtitle: "仅连接已开启网络 ADB 的设备")
                     Spacer()
                     Button { model.refresh() } label: { Label("刷新状态", systemImage: "arrow.clockwise") }
                         .disabled(model.busy).buttonStyle(.borderless).font(.system(size: 11))
@@ -417,7 +417,7 @@ struct InstallerView: View {
                         if model.networks.isEmpty { Text("暂无网络").tag("") }
                         ForEach(model.networks) { Text($0.description).tag($0.id) }
                     }.labelsHidden().frame(maxWidth: .infinity).disabled(model.busy)
-                    Button { model.discover() } label: { Label("发现电视", systemImage: "antenna.radiowaves.left.and.right") }
+                    Button { model.discover() } label: { Label("发现设备", systemImage: "antenna.radiowaves.left.and.right") }
                         .buttonStyle(PrimaryButtonStyle()).disabled(model.busy)
                 }
                 if model.busy && !model.installing {
@@ -434,15 +434,15 @@ struct InstallerView: View {
                     HStack(spacing: 14) {
                         Image(systemName: "tv").font(.system(size: 26)).foregroundStyle(muted.opacity(0.5))
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("等待发现你的电视").font(.system(size: 12, weight: .medium))
-                            Text("没有发现？在下方输入电视的 IP 地址。").font(.system(size: 11)).foregroundStyle(muted)
+                            Text("等待发现你的设备").font(.system(size: 12, weight: .medium))
+                            Text("没有发现？在下方输入设备的 IP 地址。").font(.system(size: 11)).foregroundStyle(muted)
                         }
                         Spacer()
                     }.padding(18).background(canvas).clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 HStack(spacing: 10) {
                     Image(systemName: "link").foregroundStyle(muted)
-                    TextField("电视 IP，例如 192.168.1.73 或 IP:端口", text: $model.address)
+                    TextField("设备 IP，例如 192.168.1.73 或 IP:端口", text: $model.address)
                         .textFieldStyle(.roundedBorder).onSubmit { model.connect() }.disabled(model.busy)
                     Button("连接") { model.connect() }.disabled(model.busy || model.address.trimmingCharacters(in: .whitespaces).isEmpty)
                     Button("无线配对") { model.showPairing = true }.disabled(model.busy)
@@ -460,7 +460,7 @@ struct InstallerView: View {
         let selected = model.selectedSerial == device.serial
         return Button { model.selectedSerial = device.serial } label: {
             HStack(spacing: 12) {
-                Image(systemName: "tv.fill").font(.system(size: 22)).foregroundStyle(selected ? accent : muted)
+                Image(systemName: "apps.iphone").font(.system(size: 22)).foregroundStyle(selected ? accent : muted)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(device.title).font(.system(size: 12, weight: .semibold)).lineLimit(1)
                     Text(device.serial).font(.system(size: 10, design: .monospaced)).foregroundStyle(muted).lineLimit(1)
@@ -491,7 +491,7 @@ struct InstallerView: View {
                         Image(systemName: "shippingbox").font(.system(size: 28, weight: .light)).foregroundStyle(accent)
                         VStack(alignment: .leading, spacing: 5) {
                             Text("拖入 APK，或点击选择文件").font(.system(size: 13, weight: .semibold))
-                            Text("可一次选择多个文件 · 从应用官方来源获取电视版 APK").font(.system(size: 11)).foregroundStyle(muted)
+                            Text("可一次选择多个文件 · 从应用官方来源获取适合目标设备的 APK").font(.system(size: 11)).foregroundStyle(muted)
                         }
                         Spacer()
                         Image(systemName: "plus.circle.fill").font(.system(size: 23)).foregroundStyle(accent)
@@ -538,7 +538,7 @@ struct InstallerView: View {
                 Divider()
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(model.selected.map { "安装到：\($0.title)" } ?? "请先连接并选择电视")
+                        Text(model.selected.map { "安装到：\($0.title)" } ?? "请先连接并选择设备")
                             .font(.system(size: 12, weight: .semibold))
                         Text(model.selected?.serial ?? "安装目标将在此显示").font(.system(size: 10, design: .monospaced)).foregroundStyle(muted)
                     }
@@ -570,17 +570,17 @@ struct InstallerView: View {
     var pairingSheet: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("无线调试配对").font(.system(size: 22, weight: .bold))
-            Text("在电视「开发者选项 → 无线调试」中选择「使用配对码配对」。保持配对窗口打开，分别填写配对地址和无线调试主页面的连接地址。两者端口通常不同。")
+            Text("在设备「开发者选项 → 无线调试」中选择「使用配对码配对」。保持配对窗口打开，分别填写配对地址和无线调试主页面的连接地址。两者端口通常不同。")
                 .font(.system(size: 12)).foregroundStyle(muted).fixedSize(horizontal: false, vertical: true)
             labeledField("配对 IP 与端口", placeholder: "192.168.1.73:37001", text: $model.pairAddress)
             VStack(alignment: .leading, spacing: 6) {
                 Text("6 位配对码").font(.system(size: 11, weight: .medium))
-                SecureField("电视显示的配对码", text: $model.pairCode).textFieldStyle(.roundedBorder)
+                SecureField("设备显示的配对码", text: $model.pairCode).textFieldStyle(.roundedBorder)
             }
             labeledField("连接 IP 与端口", placeholder: "192.168.1.73:39001", text: $model.connectionAddress)
             if model.bannerError { Text(model.banner).font(.system(size: 11)).foregroundStyle(Color.orange).fixedSize(horizontal: false, vertical: true) }
             HStack {
-                Text("没有此菜单的电视，使用主界面的 IP 连接。").font(.system(size: 10)).foregroundStyle(muted)
+                Text("没有此菜单的设备，使用主界面的 IP 连接。").font(.system(size: 10)).foregroundStyle(muted)
                 Spacer()
                 Button("取消") { model.showPairing = false; model.pairCode = "" }.disabled(model.busy)
                 Button("配对并连接") { model.pair() }.buttonStyle(PrimaryButtonStyle()).disabled(model.busy)
@@ -622,12 +622,12 @@ struct InstallerView: View {
     var helpSheet: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack { Text("使用帮助").font(.system(size: 22, weight: .bold)); Spacer(); Button("关闭") { showHelp = false } }
-            helpItem("1. 准备电视", "在设置 → 关于中连续点击产品型号，启用开发者选项，再到账号与安全开启 ADB 调试。菜单随型号而变化。")
-            helpItem("2. 连接", "电脑和电视连接同一局域网。点击发现电视，或输入电视网络详情里的 IP。默认端口 5555；无线调试以电视显示的端口为准。首次连接需在电视上允许调试。")
-            helpItem("3. 安装", "拖入或选择 APK，确认设备型号及 IP，再开始安装。多个独立 APK 会依次安装；同一应用的 base 和 split 文件需勾选拆分 APK。安装成功不代表应用适配遥控器，优先选择电视版。")
-            helpItem("找不到电视", "确认电视已开机、IP 正确、没有使用访客网络。部分固件开启 ADB 后仍未开放网络端口；本工具无法远程开启电视端的调试服务。大于 /24 的网络仅扫描本机所在 /24，其他网段使用手动 IP。若 macOS 提示局域网权限，请允许；拒绝后到系统设置 → 隐私与安全性 → 本地网络恢复。")
-            helpItem("安装报错", "查看操作日志和每个文件下的原因。签名不同、版本过旧、存储不足或缺少 split 文件都可能导致失败。本工具不会自动卸载应用或删除电视数据。")
-            helpItem("使用后", "断开连接只断开这台电脑；需要关闭调试服务时，请在电视设置中关闭 ADB。配对码不保存，ADB 的设备信任密钥由官方 ADB 管理。")
+            helpItem("1. 准备设备", "在设备设置中启用开发者选项，再开启无线调试或网络 ADB。通常连续点击「版本号」启用开发者选项，菜单随品牌和系统而变化。部分设备需先通过 USB 启用网络 ADB。")
+            helpItem("2. 连接", "电脑和设备连接同一局域网。点击发现设备，或输入设备网络详情里的 IP。默认端口 5555；无线调试以设备显示的端口为准。首次连接需在设备上允许调试。")
+            helpItem("3. 安装", "拖入或选择 APK，确认设备型号及 IP，再开始安装。多个独立 APK 会依次安装；同一应用的 base 和 split 文件需勾选拆分 APK。请确认 APK 支持目标设备的 Android 版本、处理器架构与操作方式。")
+            helpItem("找不到设备", "确认设备已开机、IP 正确、没有使用访客网络。部分固件开启 ADB 后仍未开放网络端口；本工具无法远程开启设备端的调试服务。大于 /24 的网络仅扫描本机所在 /24，其他网段使用手动 IP。若 macOS 提示局域网权限，请允许；拒绝后到系统设置 → 隐私与安全性 → 本地网络恢复。")
+            helpItem("安装报错", "查看操作日志和每个文件下的原因。签名不同、版本过旧、存储不足或缺少 split 文件都可能导致失败。本工具不会自动卸载应用或删除设备数据。")
+            helpItem("使用后", "断开连接只断开这台电脑；需要关闭调试服务时，请在设备设置中关闭 ADB。配对码不保存，ADB 的设备信任密钥由官方 ADB 管理。")
         }.padding(28).frame(width: 650).background(canvas)
     }
 
@@ -646,7 +646,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let model = AppState.model, model.installing {
             let alert = NSAlert()
             alert.messageText = "安装仍在进行"
-            alert.informativeText = "退出会停止后续安装。电视可能仍会完成当前安装，请在电视上确认结果。"
+            alert.informativeText = "退出会停止后续安装。设备可能仍会完成当前安装，请在设备上确认结果。"
             alert.addButton(withTitle: "继续安装")
             alert.addButton(withTitle: "退出")
             return alert.runModal() == .alertFirstButtonReturn ? .terminateCancel : .terminateNow
@@ -663,7 +663,7 @@ struct TVInstallerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var model = InstallerModel()
     var body: some Scene {
-        WindowGroup("电视安装助手") {
+        WindowGroup("局域网安卓设备安装助手") {
             InstallerView().environmentObject(model).onAppear { AppState.model = model }
         }.defaultSize(width: 1140, height: 830)
             .windowResizability(.contentMinSize)
@@ -672,7 +672,7 @@ struct TVInstallerApp: App {
                     Button("选择 APK…") { model.chooseFiles() }.keyboardShortcut("o").disabled(model.installing)
                 }
                 CommandGroup(after: .newItem) {
-                    Button("发现电视") { model.discover() }.keyboardShortcut("r").disabled(model.busy)
+                    Button("发现设备") { model.discover() }.keyboardShortcut("r").disabled(model.busy)
                     Button("操作日志") { model.showLogs = true }.keyboardShortcut("l")
                 }
             }
