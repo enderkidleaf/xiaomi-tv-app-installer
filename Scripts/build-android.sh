@@ -21,7 +21,7 @@ PY
 "$TASK_TOOLS/aapt2" compile --dir "$TASK_ROOT/Android/app/src/main/res" -o "$TASK_BUILD/resources.zip"
 "$TASK_TOOLS/aapt2" link -o "$TASK_BUILD/unsigned.apk" -I "$TASK_PLATFORM" \
     --manifest "$TASK_BUILD/AndroidManifest.xml" --java "$TASK_BUILD/generated" \
-    --min-sdk-version 26 --target-sdk-version 36 --version-code 111 --version-name 1.1.1 \
+    --min-sdk-version 26 --target-sdk-version 36 --version-code 120 --version-name 1.2.0 \
     "$TASK_BUILD/resources.zip"
 python3 - "$TASK_ROOT" <<'PY'
 import pathlib,sys
@@ -37,6 +37,7 @@ import pathlib,zipfile,sys
 root=pathlib.Path(sys.argv[1])
 with zipfile.ZipFile(root/'unsigned.apk','a',zipfile.ZIP_DEFLATED) as zip:
     for dex in sorted((root/'dex').glob('*.dex')):zip.write(dex,dex.name)
+    zip.write(root.parent.parent/'Shared/PreparationGuide.json','assets/PreparationGuide.json')
 PY
 "$TASK_TOOLS/zipalign" -f -p 4 "$TASK_BUILD/unsigned.apk" "$TASK_BUILD/aligned.apk"
 if [ ! -f "$TASK_ROOT/.signing/android-release.jks" ]; then

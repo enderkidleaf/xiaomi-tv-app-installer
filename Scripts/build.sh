@@ -18,10 +18,11 @@ python3 "$TASK_ROOT/Scripts/pack-icon.py" "$TASK_ROOT/.build/AppIcon.iconset" "$
 for TASK_ARCH in arm64 x86_64; do
     swiftc "${TASK_FLAGS[@]}" -swift-version 5 -O -sdk "$TASK_SDK" -target "$TASK_ARCH-apple-macosx13.0" \
         -module-cache-path "$TASK_ROOT/.build/module-cache" \
-        "$TASK_ROOT/Sources/Core.swift" "$TASK_ROOT/Sources/App.swift" \
+        "$TASK_ROOT/Sources/Core.swift" "$TASK_ROOT/Sources/PreparationGuide.swift" "$TASK_ROOT/Sources/App.swift" \
         -o "$TASK_ROOT/.build/TVInstaller-$TASK_ARCH"
 done
 lipo -create "$TASK_ROOT/.build/TVInstaller-arm64" "$TASK_ROOT/.build/TVInstaller-x86_64" -output "$TASK_APP/Contents/MacOS/TVInstaller"
+cp "$TASK_ROOT/Shared/PreparationGuide.json" "$TASK_APP/Contents/Resources/PreparationGuide.json"
 cp "$TASK_ROOT/Resources/Info.plist" "$TASK_APP/Contents/Info.plist"
 cp "$TASK_ROOT/Resources/adb" "$TASK_APP/Contents/Resources/adb"
 cp "$TASK_ROOT/Resources/ADB-NOTICE.txt" "$TASK_APP/Contents/Resources/ADB-NOTICE.txt"
