@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TASK_APP="$TASK_ROOT/dist/电视安装助手.app"
+TASK_APP="$TASK_ROOT/dist/局域网安卓设备安装助手.app"
 mkdir -p "$TASK_ROOT/.build" "$TASK_APP/Contents/MacOS" "$TASK_APP/Contents/Resources"
 if [ ! -x "$TASK_ROOT/Resources/adb" ]; then
     /usr/bin/curl --fail --location https://dl.google.com/android/repository/platform-tools-latest-darwin.zip -o "$TASK_ROOT/.build/platform-tools.zip"
@@ -29,5 +29,5 @@ if [ -f "$TASK_ROOT/Resources/AppIcon.icns" ]; then cp "$TASK_ROOT/Resources/App
 chmod +x "$TASK_APP/Contents/Resources/adb" "$TASK_APP/Contents/MacOS/TVInstaller"
 codesign --force --sign - "$TASK_APP/Contents/Resources/adb"
 codesign --force --sign - "$TASK_APP"
-ditto -c -k --sequesterRsrc --keepParent "$TASK_APP" "$TASK_ROOT/dist/电视安装助手-macOS.zip"
+ditto -c -k --sequesterRsrc --keepParent "$TASK_APP" "$TASK_ROOT/dist/android-lan-app-installer-macOS.zip"
 printf 'Built: %s\n' "$TASK_APP"

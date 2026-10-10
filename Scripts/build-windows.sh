@@ -2,7 +2,7 @@
 set -euo pipefail
 TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ -x "$TASK_ROOT/.build/toolchains/dotnet/dotnet" ]; then TASK_DOTNET="$TASK_ROOT/.build/toolchains/dotnet/dotnet"; else TASK_DOTNET="$(command -v dotnet)"; fi
-mkdir -p "$TASK_ROOT/.build/windows-adb" "$TASK_ROOT/Windows/Resources/adb" "$TASK_ROOT/dist/windows"
+mkdir -p "$TASK_ROOT/.build/windows-adb" "$TASK_ROOT/Windows/Resources/adb" "$TASK_ROOT/dist/android-windows"
 if [ ! -f "$TASK_ROOT/Windows/Resources/adb/adb.exe" ]; then
     curl --fail --location https://dl.google.com/android/repository/platform-tools-latest-windows.zip -o "$TASK_ROOT/.build/windows-adb.zip"
     unzip -q -o "$TASK_ROOT/.build/windows-adb.zip" -d "$TASK_ROOT/.build/windows-adb"
@@ -17,12 +17,12 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_GENERATE_ASPNET_CERTIFICATE=false
 "$TASK_DOTNET" publish "$TASK_ROOT/Windows/TVAppInstaller.csproj" -c Release -r win-x64 \
     --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false \
-    -o "$TASK_ROOT/dist/windows"
+    -o "$TASK_ROOT/dist/android-windows"
 python3 - "$TASK_ROOT" <<'PY'
 import pathlib,sys,zipfile
-root=pathlib.Path(sys.argv[1]); source=root/'dist/windows'
-with zipfile.ZipFile(root/'dist/xiaomi-tv-app-installer-Windows-x64.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as zip:
+root=pathlib.Path(sys.argv[1]); source=root/'dist/android-windows'
+with zipfile.ZipFile(root/'dist/android-lan-app-installer-Windows-x64.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as zip:
     for file in sorted(source.rglob('*')):
-        if file.is_file():zip.write(file,'TVAppInstaller/'+str(file.relative_to(source)))
+        if file.is_file():zip.write(file,'AndroidAppInstaller/'+str(file.relative_to(source)))
 print('Windows package built')
 PY

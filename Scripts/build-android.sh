@@ -21,7 +21,7 @@ PY
 "$TASK_TOOLS/aapt2" compile --dir "$TASK_ROOT/Android/app/src/main/res" -o "$TASK_BUILD/resources.zip"
 "$TASK_TOOLS/aapt2" link -o "$TASK_BUILD/unsigned.apk" -I "$TASK_PLATFORM" \
     --manifest "$TASK_BUILD/AndroidManifest.xml" --java "$TASK_BUILD/generated" \
-    --min-sdk-version 26 --target-sdk-version 36 --version-code 110 --version-name 1.1.0 \
+    --min-sdk-version 26 --target-sdk-version 36 --version-code 111 --version-name 1.1.1 \
     "$TASK_BUILD/resources.zip"
 python3 - "$TASK_ROOT" <<'PY'
 import pathlib,sys
@@ -44,10 +44,10 @@ if [ ! -f "$TASK_ROOT/.signing/android-release.jks" ]; then
     openssl rand -hex 32 > "$TASK_ROOT/.signing/android-storepass"
     "$TASK_JAVA/bin/keytool" -genkeypair -keystore "$TASK_ROOT/.signing/android-release.jks" \
         -storepass:file "$TASK_ROOT/.signing/android-storepass" -keypass:file "$TASK_ROOT/.signing/android-storepass" -alias tv-installer -keyalg RSA -keysize 2048 \
-        -validity 10000 -dname 'CN=TV App Installer, OU=Local Build' -storetype JKS
+        -validity 10000 -dname 'CN=Android LAN App Installer, OU=Local Build' -storetype JKS
 fi
 "$TASK_TOOLS/apksigner" sign --ks "$TASK_ROOT/.signing/android-release.jks" --ks-key-alias tv-installer \
     --ks-pass "file:$TASK_ROOT/.signing/android-storepass" \
-    --out "$TASK_ROOT/dist/xiaomi-tv-app-installer-Android.apk" "$TASK_BUILD/aligned.apk"
-"$TASK_TOOLS/apksigner" verify --verbose "$TASK_ROOT/dist/xiaomi-tv-app-installer-Android.apk"
+    --out "$TASK_ROOT/dist/android-lan-app-installer-Android.apk" "$TASK_BUILD/aligned.apk"
+"$TASK_TOOLS/apksigner" verify --verbose "$TASK_ROOT/dist/android-lan-app-installer-Android.apk"
 printf 'Android package built\n'
