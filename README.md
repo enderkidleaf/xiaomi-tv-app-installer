@@ -14,9 +14,9 @@
 
 ## 下载
 
-[v1.1.1 预览版](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases/tag/v1.1.1) 已统一使用通用安卓设备文案。仓库地址沿用原名，应用标识与安卓签名保持兼容。旧版本下载包仍保留原来的名称。
+[v1.1.1 预览版](https://github.com/enderkidleaf/android-lan-app-installer/releases/tag/v1.1.1) 已统一使用通用安卓设备文案。仓库名称已统一为 `android-lan-app-installer`，应用标识与安卓签名保持兼容。旧版本下载包仍保留原来的名称。
 
-在 [GitHub Releases](https://github.com/enderkidleaf/xiaomi-tv-app-installer/releases) 选择对应平台的安装包。macOS 包为 `android-lan-app-installer-macOS.zip`；Windows 包为 `android-lan-app-installer-Windows-x64.zip`；安卓为 `android-lan-app-installer-Android.apk`。
+在 [GitHub Releases](https://github.com/enderkidleaf/android-lan-app-installer/releases) 选择对应平台的安装包。macOS 包为 `android-lan-app-installer-macOS.zip`；Windows 包为 `android-lan-app-installer-Windows-x64.zip`；安卓为 `android-lan-app-installer-Android.apk`。
 
 新客户端的本地构建产物为 `dist/android-lan-app-installer-Windows-x64.zip` 和 `dist/android-lan-app-installer-Android.apk`。Windows 解压整个目录后运行 `AndroidAppInstaller.exe`，保留旁边的 `Resources` 文件夹；安卓 APK 安装到手机或平板，选择安卓客户端设备上下载好的 APK 发送到目标设备。
 
