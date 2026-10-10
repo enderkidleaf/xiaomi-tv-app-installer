@@ -35,28 +35,28 @@ public class MainActivity extends Activity {
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(BG);
         LinearLayout root=vertical();root.setPadding(dp(20),dp(20),dp(20),dp(24));scroll.addView(root);setContentView(scroll);
         root.setOnApplyWindowInsetsListener((view,insets)->{view.setPadding(dp(20),dp(20)+insets.getSystemWindowInsetTop(),dp(20),dp(24)+insets.getSystemWindowInsetBottom());return insets;});root.requestApplyInsets();
-        TextView brand=text("电视安装助手",14,true);brand.setTextColor(ORANGE);root.addView(brand);
-        root.addView(text("把喜欢的应用，\n装上电视。",28,true));root.addView(text("手机直接连接电视，无需 root 或电脑。",13,false));space(root,20);
+        TextView brand=text("局域网安卓设备安装助手",14,true);brand.setTextColor(ORANGE);root.addView(brand);
+        root.addView(text("把喜欢的应用，\n装上设备。",28,true));root.addView(text("手机直接连接设备，无需 root 或电脑。",13,false));space(root,20);
         LinearLayout connection=card();root.addView(connection);
-        connection.addView(text("01  选择电视",18,true));connection.addView(text("开启电视 ADB 调试，并接入同一局域网。",12,false));space(connection,10);
+        connection.addView(text("01  选择设备",18,true));connection.addView(text("开启目标设备的网络 ADB，并接入同一局域网。",12,false));space(connection,10);
         networks=new Spinner(this);lockable.add(networks);connection.addView(networks);
-        connection.addView(button("发现电视",()->runWork(()->discover()),true));
+        connection.addView(button("发现设备",()->runWork(()->discover()),true));
         deviceViews=vertical();connection.addView(deviceViews);
-        address=new EditText(this);address.setSingleLine(true);address.setTextSize(14);address.setHint("电视 IP 或 IP:端口（默认 5555）");address.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_URI);connection.addView(address);lockable.add(address);
+        address=new EditText(this);address.setSingleLine(true);address.setTextSize(14);address.setHint("设备 IP 或 IP:端口（默认 5555）");address.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_URI);connection.addView(address);lockable.add(address);
         LinearLayout connectRow=horizontal();connectRow.addView(button("连接",()->{try{AdbCore.Endpoint endpoint=AdbCore.Endpoint.parse(address.getText().toString());runWork(()->connect(endpoint));}catch(Exception e){notice(e.getMessage(),true);}},false),weight());
-        connectRow.addView(button("断开",()->{selected=null;deviceViews.removeAllViews();targetLabel.setText("请先连接电视");notice("已清除所选连接。电视端 ADB 调试需在电视设置中关闭。",false);updateInstall();},false),weight());connection.addView(connectRow);
+        connectRow.addView(button("断开",()->{selected=null;deviceViews.removeAllViews();targetLabel.setText("请先连接设备");notice("已清除所选连接。设备端 ADB 调试需在设备设置中关闭。",false);updateInstall();},false),weight());connection.addView(connectRow);
         connection.addView(text("安卓端支持普通 TCP 网络 ADB。配对式 TLS 无线调试请使用桌面客户端。",11,false));
-        space(root,16);LinearLayout apk=card();root.addView(apk);apk.addView(text("02  添加应用",18,true));apk.addView(text("APK 从手机直接传到所选电视，不上传云端。",12,false));
+        space(root,16);LinearLayout apk=card();root.addView(apk);apk.addView(text("02  添加应用",18,true));apk.addView(text("APK 从手机直接传到所选设备，不上传云端。",12,false));
         apk.addView(button("选择 APK 文件",this::chooseFiles,true));
         fileViews=vertical();apk.addView(fileViews);
         LinearLayout clearRow=horizontal();clearRow.addView(button("清空文件",()->{for(Apk f:files)f.file.delete();files.clear();renderFiles();},false),weight());clearRow.addView(button("操作日志",this::showLog,false,false),weight());apk.addView(clearRow);
         split=new CheckBox(this);split.setText("拆分 APK（全部文件属于同一应用）");split.setTextSize(12);apk.addView(split);lockable.add(split);
-        targetLabel=text("请先连接电视",13,true);apk.addView(targetLabel);
+        targetLabel=text("请先连接设备",13,true);apk.addView(targetLabel);
         progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);progress.setMax(1000);progress.setProgressTintList(android.content.res.ColorStateList.valueOf(ORANGE));apk.addView(progress,new LinearLayout.LayoutParams(-1,dp(7)));
         install=button("开始安装",()->runWork(this::install),true);apk.addView(install);
         stop=button("停止后续安装",()->{stopRemaining=true;stop.setEnabled(false);notice("当前安装结束后将停止队列。",false);},false,false);stop.setVisibility(View.GONE);apk.addView(stop);
-        space(root,16);banner=text("准备就绪：先发现电视或输入 IP 连接。",13,false);banner.setPadding(dp(14),dp(12),dp(14),dp(12));banner.setBackground(round(0xffeeeeE8,10));root.addView(banner);
-        root.addView(button("使用帮助",this::help,false,false));root.addView(text("v1.1.0 · Android 8+ · 局域网 ADB",11,false));
+        space(root,16);banner=text("准备就绪：先发现设备或输入 IP 连接。",13,false);banner.setPadding(dp(14),dp(12),dp(14),dp(12));banner.setBackground(round(0xffeeeeE8,10));root.addView(banner);
+        root.addView(button("使用帮助",this::help,false,false));root.addView(text("v1.1.1 · Android 8+ · 局域网 ADB",11,false));
         try{lans.addAll(AdbCore.Lan.current());networks.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,lans));}catch(Exception e){notice(e.getMessage(),true);}
         updateInstall();
     }
@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
     void ui(Runnable action){runOnUiThread(()->{if(!isFinishing()&&!isDestroyed())action.run();});}
     void notice(String value,boolean error){if(value==null)value="操作失败";final String message=value;ui(()->{banner.setText(message);banner.setTextColor(error?0xffa0471d:MUTED);appendLog(message);});}
     void appendLog(String message){log.append('[').append(new java.text.SimpleDateFormat("HH:mm:ss",Locale.ROOT).format(new Date())).append("] ").append(message).append('\n');if(log.length()>150000)log.delete(0,log.length()-100000);}
-    void updateInstall(){install.setEnabled(!busy&&selected!=null&&!files.isEmpty());targetLabel.setText(selected==null?"请先连接电视":"安装到："+selected.address());}
+    void updateInstall(){install.setEnabled(!busy&&selected!=null&&!files.isEmpty());targetLabel.setText(selected==null?"请先连接设备":"安装到："+selected.address());}
     void setBusy(boolean value){busy=value;for(View v:lockable)v.setEnabled(!value);getWindow().getDecorView().setKeepScreenOn(value);updateInstall();}
     void runWork(Work work){
         if(busy)return;setBusy(true);progress.setProgress(0);
@@ -88,7 +88,7 @@ public class MainActivity extends Activity {
             deviceViews.removeAllViews();
             for(AdbCore.Endpoint endpoint:found){Button b=button("连接 "+endpoint.address(),()->runWork(()->connect(endpoint)),false);b.setEnabled(false);deviceViews.addView(b);}
         });
-        notice(found.isEmpty()?"未发现开放的网络 ADB。请确认电视已开机、调试已开启，或手动输入 IP。":"发现 "+found.size()+" 个 ADB 端口，请点击连接并确认电视型号。",found.isEmpty());
+        notice(found.isEmpty()?"未发现开放的网络 ADB。请确认设备已开机、调试已开启，或手动输入 IP。":"发现 "+found.size()+" 个 ADB 端口，请点击连接并确认设备型号。",found.isEmpty());
     }
     void connect(AdbCore.Endpoint endpoint)throws Exception{
         notice("连接 "+endpoint.address()+"…",false);String info=shell(endpoint,"getprop ro.product.model; getprop ro.build.version.release; getprop ro.product.cpu.abilist",30000);
@@ -146,7 +146,7 @@ public class MainActivity extends Activity {
         }else{
             for(Apk apk:snapshot){
                 if(stopRemaining)break;String remote="/data/local/tmp/tv-installer-"+UUID.randomUUID()+".apk";apk.state="安装中";ui(this::renderFiles);
-                try{push(target,apk,remote);notice("电视正在安装："+apk.name,false);String result=shell(target,"pm install -r "+remote,600000);ui(()->appendLog(result));if(!success(result))throw new IOException(result);apk.state="安装成功";success++;}
+                try{push(target,apk,remote);notice("设备正在安装："+apk.name,false);String result=shell(target,"pm install -r "+remote,600000);ui(()->appendLog(result));if(!success(result))throw new IOException(result);apk.state="安装成功";success++;}
                 catch(Exception e){apk.state="安装失败";apk.detail=AdbCore.friendly(e.getMessage());failure++;}
                 finally{cleanup(target,remote);ui(this::renderFiles);}
             }
@@ -155,8 +155,8 @@ public class MainActivity extends Activity {
     }
     static boolean success(String output){for(String line:output.split("\n"))if(line.trim().equals("Success"))return true;return false;}
     void cleanup(AdbCore.Endpoint target,String path){try{shell(target,"rm -f "+path,10000);}catch(Exception e){ui(()->appendLog("临时文件清理未完成："+path));}}
-    void showLog(){TextView text=text(log.length()==0?"暂无日志":log.toString(),11,false);text.setTextIsSelectable(true);text.setPadding(dp(16),dp(10),dp(16),dp(10));ScrollView scroll=new ScrollView(this);scroll.addView(text);new AlertDialog.Builder(this).setTitle("操作日志").setView(scroll).setPositiveButton("关闭",null).setNeutralButton("导出",(d,w)->{Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.setType("text/plain");intent.putExtra(Intent.EXTRA_TITLE,"电视安装日志.txt");startActivityForResult(intent,EXPORT_LOG);}).show();}
-    void help(){new AlertDialog.Builder(this).setTitle("使用帮助").setMessage("1. 电视开启 ADB 调试，手机和电视连接同一局域网。\n2. 发现电视或输入 IP:端口，首次连接需在电视授权此手机。\n3. 选择 APK，确认电视 IP，开始安装。\n\n多个独立 APK 按顺序安装；同一应用的拆分 APK 需要选齐 base 与 split 并勾选拆分模式。\n\n本版本支持普通网络 ADB，通常使用 5555 端口；配对式 TLS 无线调试可使用桌面版本。\n\nAPK 仅从手机传到电视。手机缓存会随清空文件或退出应用清理；原文件不会删除。断开连接不会关闭电视端调试服务。\n\n大网络最多扫描本机所在 /24，其他网段使用手动连接。优先选择适配遥控器的电视版 APK。").setPositiveButton("知道了",null).show();}
+    void showLog(){TextView text=text(log.length()==0?"暂无日志":log.toString(),11,false);text.setTextIsSelectable(true);text.setPadding(dp(16),dp(10),dp(16),dp(10));ScrollView scroll=new ScrollView(this);scroll.addView(text);new AlertDialog.Builder(this).setTitle("操作日志").setView(scroll).setPositiveButton("关闭",null).setNeutralButton("导出",(d,w)->{Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.setType("text/plain");intent.putExtra(Intent.EXTRA_TITLE,"安卓设备安装日志.txt");startActivityForResult(intent,EXPORT_LOG);}).show();}
+    void help(){new AlertDialog.Builder(this).setTitle("使用帮助").setMessage("1. 目标设备开启网络 ADB，手机和设备连接同一局域网。\n2. 发现设备或输入 IP:端口，首次连接需在设备授权此手机。\n3. 选择 APK，确认设备 IP，开始安装。\n\n多个独立 APK 按顺序安装；同一应用的拆分 APK 需要选齐 base 与 split 并勾选拆分模式。\n\n本版本支持普通网络 ADB，通常使用 5555 端口；配对式 TLS 无线调试可使用桌面版本。\n\nAPK 仅从手机传到设备。手机缓存会随清空文件或退出应用清理；原文件不会删除。断开连接不会关闭设备端调试服务。\n\n大网络最多扫描本机所在 /24，其他网段使用手动连接。请选择适合目标设备的 Android 版本、CPU 架构与操作方式的 APK。").setPositiveButton("知道了",null).show();}
     public void onBackPressed(){if(busy)new AlertDialog.Builder(this).setTitle("操作正在进行").setMessage("退出可能中断传输。是否退出？").setNegativeButton("继续操作",null).setPositiveButton("退出",(d,w)->{AdbCore.Connection connection=active;if(connection!=null)connection.close();finish();}).show();else super.onBackPressed();}
     protected void onDestroy(){super.onDestroy();stopRemaining=true;AdbCore.Connection connection=active;if(connection!=null)connection.close();worker.shutdownNow();for(Apk apk:files)apk.file.delete();}
 }

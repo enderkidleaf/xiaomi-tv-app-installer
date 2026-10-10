@@ -31,9 +31,9 @@ public final class AdbCore {
         public String address() { return host+":"+port; }
         public static Endpoint parse(String input) {
             String[] parts=input.trim().split(":",-1);
-            if (parts.length<1 || parts.length>2 || !parts[0].matches("[0-9]{1,3}(\\.[0-9]{1,3}){3}")) throw new IllegalArgumentException("请输入电视 IPv4 地址，例如 192.168.1.100:5555。");
+            if (parts.length<1 || parts.length>2 || !parts[0].matches("[0-9]{1,3}(\\.[0-9]{1,3}){3}")) throw new IllegalArgumentException("请输入设备 IPv4 地址，例如 192.168.1.100:5555。");
             String[] octets=parts[0].split("\\."); int first=Integer.parseInt(octets[0]);
-            if (first==0 || first==127 || first>=224) throw new IllegalArgumentException("请输入电视的局域网 IP。");
+            if (first==0 || first==127 || first>=224) throw new IllegalArgumentException("请输入设备的局域网 IP。");
             StringBuilder host=new StringBuilder();
             for (String value:octets) { int n=Integer.parseInt(value); if(n>255) throw new IllegalArgumentException("IP 地址不正确。"); if(host.length()>0) host.append('.'); host.append(n); }
             int port=5555;
@@ -145,12 +145,12 @@ public final class AdbCore {
                 boolean signed=false,published=false;
                 for(int attempt=0;attempt<12;attempt++){
                     Frame frame=Frame.read(input);
-                    if(frame.command==CNXN){if(frame.arg1<4096)throw new IOException("电视的 ADB 数据容量不受支持。");maxData=Math.min(frame.arg1,256*1024);socket.setSoTimeout(30000);return;}
-                    if(frame.command==STLS)throw new IOException("此端口使用配对式 TLS 无线调试。安卓端当前支持普通网络 ADB，请使用电视的 TCP 5555 调试端口；配对可用桌面客户端。");
+                    if(frame.command==CNXN){if(frame.arg1<4096)throw new IOException("设备的 ADB 数据容量不受支持。");maxData=Math.min(frame.arg1,256*1024);socket.setSoTimeout(30000);return;}
+                    if(frame.command==STLS)throw new IOException("此端口使用配对式 TLS 无线调试。安卓端当前支持普通网络 ADB，请使用设备的 TCP 5555 调试端口；配对可用桌面客户端。");
                     if(frame.command==AUTH && frame.arg0==1){
                         if(!signed){Frame.write(output,AUTH,2,0,keys.sign(frame.data));signed=true;}
-                        else if(!published){notice.update("请在电视的授权弹窗选择「允许」。正在等待确认…");Frame.write(output,AUTH,3,0,keys.adbPublicKey());published=true;}
-                        else throw new IOException("电视尚未授权此手机，请确认电视弹窗后重试。");
+                        else if(!published){notice.update("请在设备的授权弹窗选择「允许」。正在等待确认…");Frame.write(output,AUTH,3,0,keys.adbPublicKey());published=true;}
+                        else throw new IOException("设备尚未授权此手机，请确认设备弹窗后重试。");
                     }else throw new IOException("此端口没有返回可识别的 ADB 授权响应。");
                 }
                 throw new IOException("ADB 握手未完成。");
@@ -160,7 +160,7 @@ public final class AdbCore {
         public synchronized void open(String service)throws IOException{
             if(opened)throw new IOException("一个连接只能打开一个服务。");
             Frame.write(output,OPEN,1,0,(service+"\0").getBytes(StandardCharsets.UTF_8));Frame reply=Frame.read(input);
-            if(reply.command!=OKAY || reply.arg1!=1)throw new IOException("电视拒绝打开服务："+service);
+            if(reply.command!=OKAY || reply.arg1!=1)throw new IOException("设备拒绝打开服务："+service);
             remoteId=reply.arg0;opened=true;
         }
         void valid(Frame frame)throws IOException{if(frame.arg1!=1 || frame.arg0!=remoteId)throw new IOException("ADB 流标识不匹配。");}
@@ -172,7 +172,7 @@ public final class AdbCore {
                     Frame ack=Frame.read(input);valid(ack);
                     if(ack.command==OKAY)break;
                     if(ack.command==WRTE){if(pending.size()>=16)throw new IOException("ADB 响应队列过大。");Frame.write(output,OKAY,1,remoteId,new byte[0]);pending.add(ack.data);}
-                    else throw new IOException("电视未确认文件传输。");
+                    else throw new IOException("设备未确认文件传输。");
                 }
             }
         }
@@ -193,24 +193,24 @@ public final class AdbCore {
             while((n=source.read(buffer))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("传输已取消。");write(sync("DATA",n,Arrays.copyOf(buffer,n)));done+=n;progress.update(done,total);}
             write(sync("DONE",(int)(System.currentTimeMillis()/1000),new byte[0]));
             ByteArrayOutputStream response=new ByteArrayOutputStream();int expected=8;
-            while(response.size()<expected){byte[] part=readChunk();if(part==null)throw new IOException("电视提前关闭文件传输。");response.write(part);if(response.size()>=8){int length=ByteBuffer.wrap(response.toByteArray(),4,4).order(ByteOrder.LITTLE_ENDIAN).getInt();if(length<0||length>65536)throw new IOException("SYNC 响应长度不正确。");expected=8+length;}}
+            while(response.size()<expected){byte[] part=readChunk();if(part==null)throw new IOException("设备提前关闭文件传输。");response.write(part);if(response.size()>=8){int length=ByteBuffer.wrap(response.toByteArray(),4,4).order(ByteOrder.LITTLE_ENDIAN).getInt();if(length<0||length>65536)throw new IOException("SYNC 响应长度不正确。");expected=8+length;}}
             byte[] result=response.toByteArray();String tag=new String(result,0,4,StandardCharsets.US_ASCII);
             if(!tag.equals("OKAY"))throw new IOException("文件传输失败："+new String(result,8,result.length-8,StandardCharsets.UTF_8));
         }
         public void close(){try{socket.close();}catch(IOException ignored){}}
     }
     static byte[] sync(String id,int value,byte[] data){ByteBuffer buffer=ByteBuffer.allocate(8+data.length).order(ByteOrder.LITTLE_ENDIAN);buffer.put(id.getBytes(StandardCharsets.US_ASCII)).putInt(value).put(data);return buffer.array();}
-    static byte[] exact(InputStream input,int length)throws IOException{byte[] result=new byte[length];int offset=0;while(offset<length){int n=input.read(result,offset,length-offset);if(n<0)throw new EOFException("电视关闭了 ADB 连接。");offset+=n;}return result;}
+    static byte[] exact(InputStream input,int length)throws IOException{byte[] result=new byte[length];int offset=0;while(offset<length){int n=input.read(result,offset,length-offset);if(n<0)throw new EOFException("设备关闭了 ADB 连接。");offset+=n;}return result;}
 
     public static String shell(Endpoint endpoint,Keys keys,String command,int timeout,Notice notice)throws IOException,GeneralSecurityException{
         try(Connection connection=new Connection(endpoint,keys,notice)){connection.timeout(timeout);connection.open("shell:"+command);return new String(connection.readAll(4*1024*1024),StandardCharsets.UTF_8);}
     }
     public static String friendly(String message){
         if(message==null)return "操作失败，请查看日志。";
-        String[][] errors={{"UPDATE_INCOMPATIBLE","签名与已安装版本不同，请使用同一来源的 APK。"},{"VERSION_DOWNGRADE","版本低于电视上的已安装版本，请选择更新的 APK。"},{"NO_MATCHING_ABIS","处理器架构不兼容，请选择适合电视的 ARM 版本。"},{"OLDER_SDK","APK 要求更高的 Android 版本。"},{"INSUFFICIENT_STORAGE","电视存储空间不足，请先清理空间。"},{"USER_RESTRICTED","电视限制安装，请检查未知来源设置并确认电视提示。"},{"MISSING_SPLIT","缺少拆分文件，请选齐同一应用的 base 与 split APK，并勾选拆分模式。"}};
+        String[][] errors={{"UPDATE_INCOMPATIBLE","签名与已安装版本不同，请使用同一来源的 APK。"},{"VERSION_DOWNGRADE","版本低于设备上的已安装版本，请选择更新的 APK。"},{"NO_MATCHING_ABIS","处理器架构不兼容，请选择与设备处理器架构匹配的版本。"},{"OLDER_SDK","APK 要求更高的 Android 版本。"},{"INSUFFICIENT_STORAGE","设备存储空间不足，请先清理空间。"},{"USER_RESTRICTED","设备限制安装，请检查未知来源设置并确认设备提示。"},{"MISSING_SPLIT","缺少拆分文件，请选齐同一应用的 base 与 split APK，并勾选拆分模式。"}};
         for(String[] error:errors)if(message.contains("INSTALL_FAILED_"+error[0]))return error[1];
-        if(message.toLowerCase(Locale.ROOT).contains("timed out"))return "连接或操作超时，请确认电视已开机、授权已允许、IP 正确且网络没有客户端隔离。";
-        if(message.toLowerCase(Locale.ROOT).contains("refused"))return "电视没有开放此 ADB 端口，请检查调试设置。";
+        if(message.toLowerCase(Locale.ROOT).contains("timed out"))return "连接或操作超时，请确认设备已开机、授权已允许、IP 正确且网络没有客户端隔离。";
+        if(message.toLowerCase(Locale.ROOT).contains("refused"))return "设备没有开放此 ADB 端口，请检查调试设置。";
         return message;
     }
 }
