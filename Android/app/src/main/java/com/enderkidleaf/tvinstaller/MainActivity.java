@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         TextView brand=text("局域网安卓设备安装助手",14,true);brand.setTextColor(ORANGE);root.addView(brand);
         root.addView(text("把喜欢的应用，\n装上设备。",28,true));root.addView(text("手机直接连接设备，无需 root 或电脑。",13,false));space(root,20);
         LinearLayout connection=card();root.addView(connection);
-        connection.addView(text("01  选择设备",18,true));connection.addView(text("开启目标设备的网络 ADB，并接入同一局域网。",12,false));space(connection,10);
+        connection.addView(text("01  选择设备",18,true));connection.addView(text("开启目标设备的网络 ADB，并接入同一局域网。",12,false));connection.addView(button("连接前准备教程",this::preparation,false,false));space(connection,10);
         networks=new Spinner(this);lockable.add(networks);connection.addView(networks);
         connection.addView(button("发现设备",()->runWork(()->discover()),true));
         deviceViews=vertical();connection.addView(deviceViews);
@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
         install=button("开始安装",()->runWork(this::install),true);apk.addView(install);
         stop=button("停止后续安装",()->{stopRemaining=true;stop.setEnabled(false);notice("当前安装结束后将停止队列。",false);},false,false);stop.setVisibility(View.GONE);apk.addView(stop);
         space(root,16);banner=text("准备就绪：先发现设备或输入 IP 连接。",13,false);banner.setPadding(dp(14),dp(12),dp(14),dp(12));banner.setBackground(round(0xffeeeeE8,10));root.addView(banner);
-        root.addView(button("使用帮助",this::help,false,false));root.addView(text("v1.1.1 · Android 8+ · 局域网 ADB",11,false));
+        root.addView(button("连接前准备教程",this::preparation,false,false));root.addView(button("使用帮助",this::help,false,false));root.addView(text("v1.2.0 · Android 8+ · 局域网 ADB",11,false));
         try{lans.addAll(AdbCore.Lan.current());networks.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,lans));}catch(Exception e){notice(e.getMessage(),true);}
         updateInstall();
     }
@@ -156,6 +156,7 @@ public class MainActivity extends Activity {
     static boolean success(String output){for(String line:output.split("\n"))if(line.trim().equals("Success"))return true;return false;}
     void cleanup(AdbCore.Endpoint target,String path){try{shell(target,"rm -f "+path,10000);}catch(Exception e){ui(()->appendLog("临时文件清理未完成："+path));}}
     void showLog(){TextView text=text(log.length()==0?"暂无日志":log.toString(),11,false);text.setTextIsSelectable(true);text.setPadding(dp(16),dp(10),dp(16),dp(10));ScrollView scroll=new ScrollView(this);scroll.addView(text);new AlertDialog.Builder(this).setTitle("操作日志").setView(scroll).setPositiveButton("关闭",null).setNeutralButton("导出",(d,w)->{Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.setType("text/plain");intent.putExtra(Intent.EXTRA_TITLE,"安卓设备安装日志.txt");startActivityForResult(intent,EXPORT_LOG);}).show();}
+    void preparation(){PreparationGuide.show(this);}
     void help(){new AlertDialog.Builder(this).setTitle("使用帮助").setMessage("1. 目标设备开启网络 ADB，手机和设备连接同一局域网。\n2. 发现设备或输入 IP:端口，首次连接需在设备授权此手机。\n3. 选择 APK，确认设备 IP，开始安装。\n\n多个独立 APK 按顺序安装；同一应用的拆分 APK 需要选齐 base 与 split 并勾选拆分模式。\n\n本版本支持普通网络 ADB，通常使用 5555 端口；配对式 TLS 无线调试可使用桌面版本。\n\nAPK 仅从手机传到设备。手机缓存会随清空文件或退出应用清理；原文件不会删除。断开连接不会关闭设备端调试服务。\n\n大网络最多扫描本机所在 /24，其他网段使用手动连接。请选择适合目标设备的 Android 版本、CPU 架构与操作方式的 APK。").setPositiveButton("知道了",null).show();}
     public void onBackPressed(){if(busy)new AlertDialog.Builder(this).setTitle("操作正在进行").setMessage("退出可能中断传输。是否退出？").setNegativeButton("继续操作",null).setPositiveButton("退出",(d,w)->{AdbCore.Connection connection=active;if(connection!=null)connection.close();finish();}).show();else super.onBackPressed();}
     protected void onDestroy(){super.onDestroy();stopRemaining=true;AdbCore.Connection connection=active;if(connection!=null)connection.close();worker.shutdownNow();for(Apk apk:files)apk.file.delete();}
