@@ -14,13 +14,21 @@
 
 ## 下载
 
-[v1.1.1 预览版](https://github.com/enderkidleaf/android-lan-app-installer/releases/tag/v1.1.1) 已统一使用通用安卓设备文案。仓库名称已统一为 `android-lan-app-installer`，应用标识与安卓签名保持兼容。旧版本下载包仍保留原来的名称。
+[v1.2.0 预览版](https://github.com/enderkidleaf/android-lan-app-installer/releases/tag/v1.2.0) 新增内置连接前准备教程，随时可打开查看。仓库名称已统一为 `android-lan-app-installer`，应用标识与安卓签名保持兼容。旧版本下载包仍保留原来的名称。
 
 在 [GitHub Releases](https://github.com/enderkidleaf/android-lan-app-installer/releases) 选择对应平台的安装包。macOS 包为 `android-lan-app-installer-macOS.zip`；Windows 包为 `android-lan-app-installer-Windows-x64.zip`；安卓为 `android-lan-app-installer-Android.apk`。
 
 新客户端的本地构建产物为 `dist/android-lan-app-installer-Windows-x64.zip` 和 `dist/android-lan-app-installer-Android.apk`。Windows 解压整个目录后运行 `AndroidAppInstaller.exe`，保留旁边的 `Resources` 文件夹；安卓 APK 安装到手机或平板，选择安卓客户端设备上下载好的 APK 发送到目标设备。
 
 Windows 与安卓详细说明分别见 [Windows/README.md](Windows/README.md) 和 [Android/README.md](Android/README.md)。
+
+## 连接前准备教程
+
+三个客户端均内置离线教程：在「选择设备」区域点击「准备教程」／「连接前准备教程」。macOS 侧栏、安卓页面下方和 Windows 日志工具栏也有入口。扫描或安装期间仍可查看。
+
+可选择「手机 / 平板」或「电视 / 机顶盒」，并切换普通网络 ADB、无线调试配对、先用 USB 开启三种路径。教程包含开发者选项、目标设备设置、IP 与端口、调试授权、连接排查及使用后关闭调试的说明。配对路径明确说明安卓客户端暂不支持 TLS。教程展示操作说明，需在目标设备手动完成设置。
+
+教程来源：[Android 开发者选项](https://developer.android.com/studio/debug/dev-options)、[Android ADB](https://developer.android.com/tools/adb)、[小米电视 / Mi Box 官方示例](https://www.mi.com/tw/support/article/KA-17750/)。内容集中在 `Shared/PreparationGuide.json`，三个客户端使用同一份数据。
 
 ## 使用
 
