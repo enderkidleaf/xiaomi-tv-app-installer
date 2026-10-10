@@ -321,6 +321,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 struct InstallerView: View {
     @EnvironmentObject var model: InstallerModel
     @State var showHelp = false
+    @State var showPreparation = false
     var body: some View {
         HStack(spacing: 0) {
             sidebar
@@ -344,6 +345,7 @@ struct InstallerView: View {
         .sheet(isPresented: $model.showPairing) { pairingSheet }
         .sheet(isPresented: $model.showLogs) { logSheet }
         .sheet(isPresented: $showHelp) { helpSheet }
+        .sheet(isPresented: $showPreparation) { PreparationGuideView() }
         .onOpenURL { model.addFiles([$0]) }
         .onAppear { model.refresh() }
     }
@@ -362,6 +364,8 @@ struct InstallerView: View {
                 Label("安装应用", systemImage: "square.and.arrow.down").font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(accent).padding(13).frame(maxWidth: .infinity, alignment: .leading)
                     .background(accent.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 10))
+                Button { showPreparation = true } label: { Label("连接前准备教程", systemImage: "book.closed").padding(.horizontal, 13) }
+                    .buttonStyle(.plain).font(.system(size: 13)).foregroundStyle(muted)
                 Button { model.showLogs = true } label: { Label("操作日志", systemImage: "text.alignleft").padding(.horizontal, 13) }
                     .buttonStyle(.plain).font(.system(size: 13)).foregroundStyle(muted)
             }
@@ -378,7 +382,7 @@ struct InstallerView: View {
                 }
                 Text(model.network?.ip ?? "检查 Wi-Fi / 以太网").font(.system(size: 11, design: .monospaced)).foregroundStyle(muted)
             }
-            Text("v1.1.1 · macOS").font(.system(size: 10)).foregroundStyle(muted.opacity(0.75))
+            Text("v1.2.0 · macOS").font(.system(size: 10)).foregroundStyle(muted.opacity(0.75))
         }.padding(24).frame(width: 220).background(Color.white)
             .overlay(alignment: .trailing) { Rectangle().fill(ink.opacity(0.06)).frame(width: 1) }
     }
@@ -408,6 +412,7 @@ struct InstallerView: View {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
                     SectionTitle(number: "01", title: "选择设备", subtitle: "仅连接已开启网络 ADB 的设备")
+                    Button("准备教程") { showPreparation = true }.buttonStyle(.borderless).font(.system(size: 11))
                     Spacer()
                     Button { model.refresh() } label: { Label("刷新状态", systemImage: "arrow.clockwise") }
                         .disabled(model.busy).buttonStyle(.borderless).font(.system(size: 11))
@@ -622,6 +627,7 @@ struct InstallerView: View {
     var helpSheet: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack { Text("使用帮助").font(.system(size: 22, weight: .bold)); Spacer(); Button("关闭") { showHelp = false } }
+            Button("打开连接前准备教程") { showHelp = false; DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { showPreparation = true } }
             helpItem("1. 准备设备", "在设备设置中启用开发者选项，再开启无线调试或网络 ADB。通常连续点击「版本号」启用开发者选项，菜单随品牌和系统而变化。部分设备需先通过 USB 启用网络 ADB。")
             helpItem("2. 连接", "电脑和设备连接同一局域网。点击发现设备，或输入设备网络详情里的 IP。默认端口 5555；无线调试以设备显示的端口为准。首次连接需在设备上允许调试。")
             helpItem("3. 安装", "拖入或选择 APK，确认设备型号及 IP，再开始安装。多个独立 APK 会依次安装；同一应用的 base 和 split 文件需勾选拆分 APK。请确认 APK 支持目标设备的 Android 版本、处理器架构与操作方式。")
